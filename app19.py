@@ -1,0 +1,93 @@
+{
+ "cells": [
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "id": "c21f3540-5cc1-4664-897c-f668300580dd",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "import streamlit as st\n",
+    "import pandas as pd\n",
+    "import numpy as np\n",
+    "import pickle\n",
+    "\n",
+    "# === Load model ===\n",
+    "with open(\"XGBoost_SSO_UCS.pkl\", \"rb\") as file:\n",
+    "    model_loaded = pickle.load(file)\n",
+    "\n",
+    "# === Page setup ===\n",
+    "st.set_page_config(page_title=\"UCS Prediction (XGBoost-SSO)\", layout=\"centered\")\n",
+    "st.title(\"UCS Prediction using XGBoost Optimized by SSO\")\n",
+    "\n",
+    "# === Developer Info ===\n",
+    "with st.expander(\"ℹ️ About the Project\"):\n",
+    "    st.markdown(\"\"\"\n",
+    "    **Developed by:**\n",
+    "    - Dr. Divesh Ranjan Kumar, Chulalongkorn University  \n",
+    "    - Dr. Shashikant Kumar, Muzaffarpur Institute of Technology  \n",
+    "    - Dr. Teerapong Senjuntichai, Chulalongkorn University  \n",
+    "    - Dr. Sakdirat Kaewunruen, University of Birmingham  \n",
+    "    📧 Contact: ranjandivesh453@gmail.com\n",
+    "    \"\"\")\n",
+    "\n",
+    "# === Input Section ===\n",
+    "st.subheader(\"Input Parameters\")\n",
+    "\n",
+    "with st.form(\"prediction_form\"):\n",
+    "    pond_ash = st.number_input(\"Pond Ash (gms)\", min_value=0.0, step=0.1)\n",
+    "    cement = st.number_input(\"Cement (gms)\", min_value=0.0, step=0.1)\n",
+    "    sp = st.number_input(\"SP (gms)\", min_value=0.0, step=0.01)\n",
+    "    lime = st.number_input(\"Lime Content (gms)\", min_value=0.0, step=0.1)\n",
+    "    curing_days = st.number_input(\"Curing Period (days)\", min_value=1.0, step=1.0)\n",
+    "\n",
+    "    col1, col2 = st.columns([1, 1])\n",
+    "    predict_button = col1.form_submit_button(\"Predict\")\n",
+    "    clear_button = col2.form_submit_button(\"Clear\")\n",
+    "\n",
+    "# === Prediction Logic ===\n",
+    "if predict_button:\n",
+    "    input_df = pd.DataFrame([[pond_ash, cement, sp, lime, curing_days]],\n",
+    "                            columns=['Pond Ash', 'Cement', 'SP', 'Lime Content', 'Curing period'])\n",
+    "    prediction = model_loaded.predict(input_df)[0]\n",
+    "    prediction = round(prediction, 2)\n",
+    "    st.success(f\"✅ Predicted UCS: **{prediction} MPa**\")\n",
+    "\n",
+    "    # Export CSV Option\n",
+    "    st.markdown(\"### Export Prediction\")\n",
+    "    export_df = input_df.copy()\n",
+    "    export_df[\"UCS (MPa)\"] = prediction\n",
+    "    csv_data = export_df.to_csv(index=False).encode(\"utf-8\")\n",
+    "    st.download_button(\"⬇️ Download CSV\", csv_data, \"ucs_prediction.csv\", \"text/csv\")\n",
+    "\n",
+    "elif clear_button:\n",
+    "    st.experimental_rerun()\n",
+    "\n",
+    "# === Footer ===\n",
+    "st.markdown(\"---\")\n",
+    "st.markdown(\"© 2025 | UCS Prediction Tool (XGBoost + SSO)\")\n"
+   ]
+  }
+ ],
+ "metadata": {
+  "kernelspec": {
+   "display_name": "Python 3 (ipykernel)",
+   "language": "python",
+   "name": "python3"
+  },
+  "language_info": {
+   "codemirror_mode": {
+    "name": "ipython",
+    "version": 3
+   },
+   "file_extension": ".py",
+   "mimetype": "text/x-python",
+   "name": "python",
+   "nbconvert_exporter": "python",
+   "pygments_lexer": "ipython3",
+   "version": "3.11.5"
+  }
+ },
+ "nbformat": 4,
+ "nbformat_minor": 5
+}
